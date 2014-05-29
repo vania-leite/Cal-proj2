@@ -7,13 +7,29 @@
 
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <vector>
 
 using namespace std;
 
 const int altura = 20;
 const int largura = 16;
+vector<string> WORDS;
 
 char Tetris[altura][largura];
+
+void load(){
+	ifstream file;
+	file.open("dic.txt");
+	string tmp;
+	while(file.good()){
+		tmp.clear();
+		file >> tmp;
+		WORDS.push_back(tmp);
+	}
+
+}
+
 
 void init(){
 	for(int i=0;i<altura;i++)
@@ -40,13 +56,7 @@ void printMenu(){
 
 }
 
-int main(){
-	init();
-	printGame();
 
-
-	return 0;
-}
 
 void kmp_table(string W, int *T) {
 
@@ -106,4 +116,13 @@ int kmp_search(string S, string W) {
 
 	}
 	return -1;
+}
+
+int main(){
+	init();
+	printGame();
+	load();
+
+
+	return 0;
 }
