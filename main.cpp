@@ -121,7 +121,8 @@ bool contem(vector<char> c, char ch){
 		if (ch==c[i])return true;
 	return false;
 }
-string check(int line){
+
+string checkHor(int line){
 	//passing the line to a string
 	string str = Tetris[line];
 
@@ -135,9 +136,38 @@ string check(int line){
 	int ind;
 	for(int i=0;i<WORDS.size();i++){
 		word=WORDS[i];
-		if(contem(ch,word[i])){
+		if((contem(ch,word[i])) && (word.length()<=largura)){
 			ind=kmp_search(str,word);
 			for(int j=0;j<word.length();j++){
+				str[ind+j]=' ';
+			}
+		}
+	}
+	return str;
+
+}
+
+string checkVer(int column){
+	//passing the line to a string
+
+	//string str = Tetris[column];
+	string str;
+	for(int i=0;i<altura;i++){
+		str+=Tetris[i][column];
+	}
+	vector<char> ch;
+	for(int i=0;i<altura;i++){
+		if (!contem(ch,str[i]))
+			ch.push_back(str[i]);
+	}
+
+	string word;
+	int ind;
+	for(unsigned int i=0;i<WORDS.size();i++){
+		word=WORDS[i];
+		if((contem(ch,word[i])) && (word.length()<=altura)){
+			ind=kmp_search(str,word);
+			for(unsigned int j=0;j<word.length();j++){
 				str[ind+j]=' ';
 			}
 		}
@@ -154,7 +184,7 @@ int main(){
 	for(int i=0;i<16;i++){
 		Tetris[5][i]=pal[i];
 	}
-	cout << check(5);
+	cout << checkHor(5);
 
 
 	return 0;
