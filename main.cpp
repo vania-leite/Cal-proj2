@@ -56,8 +56,6 @@ void printMenu(){
 
 }
 
-
-
 void kmp_table(string W, int *T) {
 
 	int pos = 2;
@@ -118,10 +116,45 @@ int kmp_search(string S, string W) {
 	return -1;
 }
 
+bool contem(vector<char> c, char ch){
+	for(int i=0;i<c.size();i++)
+		if (ch==c[i])return true;
+	return false;
+}
+string check(int line){
+	//passing the line to a string
+	string str = Tetris[line];
+
+	vector<char> ch;
+	for(int i=0;i<largura;i++){
+		if (!contem(ch,str[i]))
+			ch.push_back(str[i]);
+	}
+
+	string word;
+	int ind;
+	for(int i=0;i<WORDS.size();i++){
+		word=WORDS[i];
+		if(contem(ch,word[i])){
+			ind=kmp_search(str,word);
+			for(int j=0;j<word.length();j++){
+				str[ind+j]=' ';
+			}
+		}
+	}
+	return str;
+
+}
+
 int main(){
 	init();
 	printGame();
 	load();
+	string pal="rrrrrrgatorrrrrr";
+	for(int i=0;i<16;i++){
+		Tetris[5][i]=pal[i];
+	}
+	cout << check(5);
 
 
 	return 0;
