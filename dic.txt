@@ -1,2 +1,3 @@
-gato
-cao
+GATO
+CAO
+BOLA
