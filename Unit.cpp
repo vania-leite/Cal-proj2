@@ -6,12 +6,19 @@
  */
 
 #include "Unit.h"
+#include <iostream>
+using namespace std;
 Unit::Unit(){
 
 }
-Unit::Unit(string L, ALLEGRO_FONT *font) {
-	this->L = L;
+Unit::Unit(char Le, ALLEGRO_FONT *font) {
 	this->font=font;
+
+	cout<<"Le : "<<Le<<"\n";
+
+	L =" ";
+	L[0]=Le;
+	cout<<"L : "<<L<<"\n";
 	SIZE = 32;
 	x=96;
 	y=0;

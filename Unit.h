@@ -20,7 +20,7 @@ public:
 	bool fixed=false;
 	ALLEGRO_FONT *font;
 	Unit();
-	Unit(string L,ALLEGRO_FONT *font);
+	Unit(char Le,ALLEGRO_FONT *font);
 	virtual ~Unit();
 	int getX(){
 		return x;

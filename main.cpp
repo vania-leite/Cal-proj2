@@ -21,6 +21,7 @@ const int SCREEN_W = 512;
 const int SCREEN_H = 640;
 const string ABC = "VACAVACAVACAVACAVACAVACAVACAVA";
 const int BOUNCER_SIZE = 32;
+int pontos=0;
 enum MYKEYS {
 	KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
 };
@@ -113,19 +114,36 @@ int kmp_search(string S, string W) {
 	return -1;
 }
 
+void deleteUnit(int line, int collumn) {
+	cout << "deleting :" << line << " , " << collumn << endl;
+	int idel = -1;
+	for (int i = 0; i < pecas.size(); i++) {
+		if (pecas[i]->getTeX() == collumn && pecas[i]->getTeY() == line) {
+			idel = i;
+			break;
+		}
+	}
+	if (idel != -1) {
+		al_destroy_bitmap(pecas[idel]->bouncer);
+		pecas.erase(pecas.begin() + idel);
+	}
+}
+
 bool contem(vector<char> c, char ch) {
 	for (int i = 0; i < c.size(); i++)
 		if (ch == c[i])
 			return true;
 	return false;
 }
+
 void check(int line) {
 	//passing the line to a string
-	char* e = new char[16];
-	for (int i = 0; i < 16; i++) {
+	char* e = new char[largura];
+	for (int i = 0; i < largura; i++) {
 		e[i] = Tetris[line][i];
 	}
 	string str(e);
+
 	cout << "Read the line : " << line << " with :" << str << endl;
 	vector<char> ch;
 	for (int i = 0; i < largura; i++) {
@@ -143,18 +161,61 @@ void check(int line) {
 				ind = kmp_search(str, word);
 				if (ind != -1)
 					for (int j = 0; j < word.length(); j++) {
-						cout << "a apagar palavra :" << word << " \n";
+						pontos++;
 						str[ind + j] = ' ';
+						deleteUnit(line, ind + j);
 					}
 
 			}
 		}
 	}
+
 	for (int i = 0; i < largura; i++) {
 		Tetris[line][i] = str[i];
 	}
 
 }
+
+void checkVer(int column) {
+	//passing the line to a string
+	char* e = new char[altura];
+	for (int i = 0; i < altura; i++) {
+		e[i] = Tetris[i][column];
+	}
+	string str(e);
+
+	cout << "Read the column : " << column << " with :" << str << endl;
+	vector<char> ch;
+	for (int i = 0; i < altura; i++) {
+		if (!contem(ch, str[i]))
+			if (str[i] != ' ')
+				ch.push_back(str[i]);
+	}
+
+	string word;
+	int ind;
+	for (int i = 0; i < WORDS.size(); i++) {
+		word = WORDS[i];
+		if (word.size() > 2) {
+			if (contem(ch, word[0])) {
+				ind = kmp_search(str, word);
+				if (ind != -1)
+					for (int j = 0; j < word.length(); j++) {
+						pontos++;
+						str[ind + j] = ' ';
+						deleteUnit(ind+j, column);
+					}
+
+			}
+		}
+	}
+
+	for (int i = 0; i < largura; i++) {
+		Tetris[i][column] = str[i];
+	}
+
+}
+
 void printGame() {
 	for (int i = 19; i >= 0; i--)
 		for (int j = 0; j < largura; j++) {
@@ -163,6 +224,13 @@ void printGame() {
 				cout << "\n";
 		}
 
+}
+
+void printPieces() {
+	cout << "Current pieces in game: \n";
+	for (int i = 0; i < pecas.size(); i++) {
+		cout << pecas[i]->L[0] << endl;
+	}
 }
 
 bool moveLeft(int i) {
@@ -174,6 +242,7 @@ bool moveLeft(int i) {
 	}
 	return false;
 }
+
 bool moveRight(int i) {
 	if (pecas[pecas.size() - 1]->getTeX() == 15)
 		return false;
@@ -183,6 +252,7 @@ bool moveRight(int i) {
 	}
 	return false;
 }
+
 bool moveDown(int i, bool time) {
 	if (pecas[i]->getTeY() == 0)
 		return false;
@@ -193,18 +263,15 @@ bool moveDown(int i, bool time) {
 	return false;
 }
 
-string RandomLetter() {
+char RandomLetter() {
 
-	srand(time(0));
 	int e = rand() % 26;
-	char c = ABC[e];
-	string tm;
-	tm[0] = c;
-	return tm;
+	return ABC[e];
 
 }
-int main() {
 
+int main() {
+	srand(time(0));
 	ALLEGRO_DISPLAY *display = NULL;
 	ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 	ALLEGRO_TIMER *timer = NULL;
@@ -242,11 +309,10 @@ int main() {
 				addP = true;
 				Tetris[pecas[pecas.size() - 1]->getTeY()][pecas[pecas.size() - 1]->getTeX()] =
 						pecas[pecas.size() - 1]->L[0];
-				cout << "linha : " << pecas[pecas.size() - 1]->getTeY() << endl;
-				cout << "coluna : " << pecas[pecas.size() - 1]->getTeX()
-						<< endl;
+				pecas[pecas.size() - 1]->fixed = true;
 
 				check(pecas[pecas.size() - 1]->getTeY());
+				checkVer(pecas[pecas.size() - 1]->getTeX());
 				printGame();
 			}
 			if (addP) {
@@ -257,6 +323,7 @@ int main() {
 			cnth++;
 			if (cnth > 10) {
 				if (key[KEY_UP]) {
+					printPieces();
 				}
 
 				if (moveDown(pecas.size() - 1, false)) {
@@ -286,8 +353,14 @@ int main() {
 			if (cnt > 60) {
 				for (int i = 0; i < pecas.size(); i++) {
 					if (moveDown(i, true)) {
+						//cout<<"moving piece in :"<<pecas[i]->getTeX()<<" , "<<pecas[i]->getTeY()<<" with letter :"<<pecas[i]->L[0]<<endl;
+						if (pecas[i]->fixed)
+							Tetris[pecas[i]->getTeY()][pecas[i]->getTeX()] =
+									' ';
 						pecas[i]->y += 32.0;
-						if(pecas[i].)
+						if (pecas[i]->fixed)
+							Tetris[pecas[i]->getTeY()][pecas[i]->getTeX()] =
+									pecas[i]->L[0];
 						cntl = 0;
 
 					}
