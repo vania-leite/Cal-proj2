@@ -16,12 +16,14 @@
 #include "Unit.h"
 #include <cstdlib>
 #include <ctime>
+#include <sstream>
 const float FPS = 60;
 const int SCREEN_W = 512;
 const int SCREEN_H = 640;
-const string ABC = "VACAVACAVACAVACAVACAVACAVACAVA";
+const string ABC = "ABCDEFGHIJLKMNOPQRSTUVWXYZ";
 const int BOUNCER_SIZE = 32;
-int pontos=0;
+int pontos = 0;
+bool easy = true;
 enum MYKEYS {
 	KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
 };
@@ -46,6 +48,9 @@ void load() {
 		WORDS.push_back(tmp);
 	}
 
+}
+int cmpfunc(const void * a, const void * b) {
+	return (*(char*) a - *(char*) b);
 }
 
 void init() {
@@ -78,6 +83,51 @@ void kmp_table(string W, int *T) {
 
 	}
 
+}
+
+int anag_search(string S, string W) {
+	char* tmp = new char[W.length()];
+	char* tmp2;
+	int smE = 0, smA = 0;
+	for (int j = 0; j < W.length(); j++) {
+
+		tmp[j] = W[j];
+	}
+	qsort(tmp, W.length(), sizeof(char), cmpfunc);
+
+	for (int j = 0; j < W.length(); j++) {
+		smE = tmp[j] + smE * 37;
+
+	}
+
+	int r = S.length();
+	int s = W.length();
+	int l = r + s + 1;
+	for (int m = 0; m < l; m++) {
+		smA = 0;
+		if (S[m] != ' ') {
+			tmp2 = new char[W.length()];
+			for (int i = 0; i < W.length(); i++) {
+				tmp2[i] = S[m + i];
+			}
+
+			qsort(tmp2, W.length(), sizeof(char), cmpfunc);
+
+			for (int i = 0; i < W.length(); i++) {
+				if (tmp2[i] == ' ')
+					break;
+
+				smA = tmp2[i] + smA * 37;
+
+			}
+			if (smA == smE) {
+				cout << "deleting word : " << W << endl;
+				cout << "returning m with : " << m << endl;
+				return m;
+			}
+		}
+	}
+	return -1;
 }
 
 /**
@@ -158,20 +208,24 @@ void check(int line) {
 		word = WORDS[i];
 		if (word.size() > 2) {
 			if (contem(ch, word[0])) {
-				ind = kmp_search(str, word);
-				if (ind != -1)
+				if (easy)
+					ind = anag_search(str, word);
+				else
+					ind = kmp_search(str, word);
+				if (ind != -1) {
 					for (int j = 0; j < word.length(); j++) {
 						pontos++;
 						str[ind + j] = ' ';
 						deleteUnit(line, ind + j);
 					}
+					for (int i = 0; i < largura; i++) {
+						Tetris[line][i] = str[i];
+					}
+					return;
+				}
 
 			}
 		}
-	}
-
-	for (int i = 0; i < largura; i++) {
-		Tetris[line][i] = str[i];
 	}
 
 }
@@ -198,12 +252,15 @@ void checkVer(int column) {
 		word = WORDS[i];
 		if (word.size() > 2) {
 			if (contem(ch, word[0])) {
-				ind = kmp_search(str, word);
+				if (easy)
+					ind = anag_search(str, word);
+				else
+					ind = kmp_search(str, word);
 				if (ind != -1)
 					for (int j = 0; j < word.length(); j++) {
 						pontos++;
 						str[ind + j] = ' ';
-						deleteUnit(ind+j, column);
+						deleteUnit(ind + j, column);
 					}
 
 			}
@@ -268,6 +325,14 @@ char RandomLetter() {
 	int e = rand() % 26;
 	return ABC[e];
 
+}
+bool end() {
+	for (int i = 0; i < largura; i++) {
+		if (Tetris[altura - 1][i] != ' ') {
+			return true;
+		}
+	}
+	return false;
 }
 
 int main() {
@@ -369,7 +434,11 @@ int main() {
 				cnt = 0;
 			}
 			cnt++;
-			redraw = true;
+			if (end()) {
+				doexit = true;
+			} else
+				redraw = true;
+
 		} else if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
 			doexit = true;
 		} else if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
@@ -424,10 +493,32 @@ int main() {
 			for (int i = 0; i < pecas.size(); i++) {
 				al_draw_bitmap(pecas[i]->bouncer, pecas[i]->x, pecas[i]->y, 0);
 			}
+			string tr = "Game Over";
+				stringstream ss;
+				ss << "Pontos :";
+				ss << pontos;
+				al_set_target_bitmap(al_get_backbuffer(display));
+
+				al_draw_text(font, al_map_rgb(255, 255, 255), 400, 20,
+						ALLEGRO_ALIGN_CENTRE, ss.str().c_str());
+
 			al_flip_display();
 		}
 	}
+	string tr = "Game Over";
+	stringstream ss;
+	ss << "Pontos :";
+	ss << pontos;
+	al_set_target_bitmap(al_get_backbuffer(display));
+	cout << "pontos: " << pontos << endl;
+	al_clear_to_color(al_map_rgb(255, 0, 0));
+	al_draw_text(font, al_map_rgb(255, 255, 255), 250, 230,
+			ALLEGRO_ALIGN_CENTRE, tr.c_str());
+	al_draw_text(font, al_map_rgb(255, 255, 255), 250, 280,
+			ALLEGRO_ALIGN_CENTRE, ss.str().c_str());
 
+	al_flip_display();
+	al_rest(10.0);
 	al_destroy_timer(timer);
 	al_destroy_display(display);
 	al_destroy_event_queue(event_queue);

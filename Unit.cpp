@@ -21,12 +21,12 @@ Unit::Unit(char Le, ALLEGRO_FONT *font) {
 	cout<<"L : "<<L<<"\n";
 	SIZE = 32;
 	x=96;
-	y=0;
+	y=-32;
 	 bouncer = al_create_bitmap(SIZE,SIZE);
 	al_set_target_bitmap(bouncer);
 
 	al_clear_to_color(al_map_rgb(30, 232, 210));
-	al_draw_text(font, al_map_rgb(255,255,255), 16, 0,ALLEGRO_ALIGN_CENTRE, L.c_str());
+	al_draw_text(font, al_map_rgb(255,255,255), 18, 5,ALLEGRO_ALIGN_CENTRE, L.c_str());
 
 }
 
