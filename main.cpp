@@ -340,7 +340,9 @@ int main() {
 	ALLEGRO_DISPLAY *display = NULL;
 	ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 	ALLEGRO_TIMER *timer = NULL;
-	bool doexit = false;
+	ALLEGRO_BITMAP *botao1 = NULL;
+	ALLEGRO_BITMAP *botao2 = NULL;
+	bool doexit = false, mainMenu = true;
 	bool redraw = true;
 	bool addP = true;
 	int cnt = 0, cnth = 30;
@@ -351,21 +353,71 @@ int main() {
 	al_init_font_addon();
 	al_init_ttf_addon();
 	al_install_keyboard();
+	al_install_mouse();
 	timer = al_create_timer(1.0 / FPS);
 	display = al_create_display(SCREEN_W, SCREEN_H);
 	ALLEGRO_FONT *font = al_load_ttf_font("pirulen.ttf", 32, 0);
 	event_queue = al_create_event_queue();
 	load();
+	botao1 = al_create_bitmap(90, 50);
+	botao2 = al_create_bitmap(90, 50);
 	al_register_event_source(event_queue, al_get_display_event_source(display));
 	al_register_event_source(event_queue, al_get_timer_event_source(timer));
 	al_register_event_source(event_queue, al_get_keyboard_event_source());
+	al_register_event_source(event_queue, al_get_mouse_event_source());
 	al_clear_to_color(al_map_rgb(0, 0, 0));
+
+	al_set_target_bitmap(botao1);
+	al_clear_to_color(al_map_rgb(10, 10, 10));
+	string L = "Facil";
+	al_draw_text(font, al_map_rgb(255, 255, 255), 45, 15, ALLEGRO_ALIGN_CENTRE,
+			L.c_str());
+	al_set_target_bitmap(botao2);
+	al_clear_to_color(al_map_rgb(10, 10, 10));
+	L = "Dificil";
+	al_draw_text(font, al_map_rgb(255, 255, 255), 45, 15, ALLEGRO_ALIGN_CENTRE,
+			L.c_str());
+	al_set_target_bitmap(al_get_backbuffer(display));
+
 	al_flip_display();
 
 	al_start_timer(timer);
 
+	ALLEGRO_EVENT ev;
+	while (mainMenu) {
+		al_wait_for_event(event_queue, &ev);
+		if (ev.type == ALLEGRO_EVENT_TIMER) {
+			redraw = true;
+		} else if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+			return 0;
+		} else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
+			if (ev.mouse.x > 220 && ev.mouse.x < 270 && ev.mouse.y > 200
+					&& ev.mouse.y < 250) {
+				easy = true;
+				mainMenu = false;
+			}
+			if (ev.mouse.x > 220 && ev.mouse.x < 270 && ev.mouse.y > 300
+					&& ev.mouse.y < 350) {
+				easy = false;
+				mainMenu = false;
+			}
+
+		}
+
+		if (redraw && al_is_event_queue_empty(event_queue)) {
+			redraw = false;
+
+			al_clear_to_color(al_map_rgb(20, 40, 70));
+
+			al_draw_bitmap(botao1, 220, 200, 0);
+			al_draw_bitmap(botao2, 220, 300, 0);
+
+			al_flip_display();
+		}
+	}
+
 	while (!doexit) {
-		ALLEGRO_EVENT ev;
+
 		al_wait_for_event(event_queue, &ev);
 
 		if (ev.type == ALLEGRO_EVENT_TIMER) {
@@ -494,13 +546,13 @@ int main() {
 				al_draw_bitmap(pecas[i]->bouncer, pecas[i]->x, pecas[i]->y, 0);
 			}
 			string tr = "Game Over";
-				stringstream ss;
-				ss << "Pontos :";
-				ss << pontos;
-				al_set_target_bitmap(al_get_backbuffer(display));
+			stringstream ss;
+			ss << "Pontos :";
+			ss << pontos;
+			al_set_target_bitmap(al_get_backbuffer(display));
 
-				al_draw_text(font, al_map_rgb(255, 255, 255), 400, 20,
-						ALLEGRO_ALIGN_CENTRE, ss.str().c_str());
+			al_draw_text(font, al_map_rgb(255, 255, 255), 400, 20,
+					ALLEGRO_ALIGN_CENTRE, ss.str().c_str());
 
 			al_flip_display();
 		}
